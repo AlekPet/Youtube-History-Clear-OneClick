@@ -4,7 +4,7 @@
 // @version      2022-11-19
 // @description  Clear history on Youtube
 // @author       AlekPet
-// @match        https://www.youtube.com/feed/history
+// @match        https://www.youtube.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=youtube.com
 // @run-at document-end
 // @grant none
@@ -12,7 +12,13 @@
 
 (function() {
     'use strict';
-    const globalStylesHistory = `
+    var debug = false,
+        // - Selectors
+        buttonsDeletes = 'ytd-two-column-browse-results-renderer.style-scope.ytd-browse.grid.grid-6-columns #contents #contents #menu ytd-menu-renderer.style-scope #top-level-buttons-computed button',
+        buttonsNotDismiss = 'ytd-two-column-browse-results-renderer.style-scope.ytd-browse.grid.grid-6-columns #contents #contents > ytd-video-renderer:not([is-dismissed]) #title-wrapper',
+        ytd_browse = 'ytd-browse',
+        // - end Selectors
+        globalStylesHistory = `
 ytd-thumbnail-overlay-resume-playback-renderer, .text-wrapper.ytd-video-renderer{
 z-index: 0;
 }
@@ -91,6 +97,9 @@ min-height: 30px;
 text-align: center;
 }
 `
+    function log(text, style=''){
+        if(debug) console.log(text, style)
+    }
 
     function mE(p){
         const tag = p.tag,
@@ -120,68 +129,70 @@ text-align: center;
         }
 
         makepanel(){
-            let panel_cls = mE({tag:'div', attr:{class:'panel_cls'}}),
-                panel_fil = mE({tag:'div', attr:{class:'panels_histories'}}),
-                panel_count = mE({tag:'div', attr:{class:'panels_histories'}}),
-                panel_buttons = mE({tag:'div', attr:{class:'panels_histories'}}),
-                pop_list_history_actions = mE({tag:'div', attr:{id:'pop_list_history_actions'}})
+            if(!document.querySelector('.panel_cls')){
+                let panel_cls = mE({tag:'div', attr:{class:'panel_cls'}}),
+                    panel_fil = mE({tag:'div', attr:{class:'panels_histories'}}),
+                    panel_count = mE({tag:'div', attr:{class:'panels_histories'}}),
+                    panel_buttons = mE({tag:'div', attr:{class:'panels_histories'}}),
+                    pop_list_history_actions = mE({tag:'div', attr:{id:'pop_list_history_actions'}})
 
-            this.pop_list_history = mE({tag:'div', attr:{id:'pop_list_history', style:'display:none;'}})
+                this.pop_list_history = mE({tag:'div', attr:{id:'pop_list_history', style:'display:none;'}})
 
-            this.pop_list_history_body = mE({tag:'div', text:'Данные отсутствуют...', attr:{id: 'pop_list_history_body'}})
-            this.pop_list_history_del = mE({tag:'button', text: "Удалить", attr:{id: 'pop_list_history_del'}})
+                this.pop_list_history_body = mE({tag:'div', text:'Данные отсутствуют...', attr:{id: 'pop_list_history_body'}})
+                this.pop_list_history_del = mE({tag:'button', text: "Удалить", attr:{id: 'pop_list_history_del'}})
 
-            this.filtertext_l = mE({tag:'label', text: "По тексту: ", attr:{for:'filtertext'}})
-            this.filtertext = mE({tag:'input', value: "", attr:{type:'text', id: 'filtertext'}})
+                this.filtertext_l = mE({tag:'label', text: "По тексту: ", attr:{for:'filtertext'}})
+                this.filtertext = mE({tag:'input', value: "", attr:{type:'text', id: 'filtertext', autocomplete:'on'}})
 
-            this.how_many_l = mE({tag:'label', text: "Кол-во: ", attr:{for:'how_many'}})
-            this.how_many_c = mE({tag:'input', attr:{type:'checkbox', id:'how_many_check'}})
-            this.how_many = mE({tag:'input', value: 5, attr:{type:'number', 'min':1, id:'how_many', disabled: true}})
+                this.how_many_l = mE({tag:'label', text: "Кол-во: ", attr:{for:'how_many'}})
+                this.how_many_c = mE({tag:'input', attr:{type:'checkbox', id:'how_many_check'}})
+                this.how_many = mE({tag:'input', value: 5, attr:{type:'number', 'min':1, id:'how_many', disabled: true}})
 
-            this.cls_button = mE({tag:'button', text: "Очистить историю", attr:{style:'width:40%;'}})
-            this.view_button = mE({tag:'button', text: "Список", attr:{style:'width:40%;'}})
+                this.cls_button = mE({tag:'button', text: "Очистить историю", attr:{style:'width:40%;'}})
+                this.view_button = mE({tag:'button', text: "Список", attr:{style:'width:40%;'}})
 
-            this.pop_list_history_close = mE({tag:'div', text: "X", attr:{title:'Закрыть',class:'pop_list_history_close'}})
+                this.pop_list_history_close = mE({tag:'div', text: "X", attr:{title:'Закрыть',class:'pop_list_history_close'}})
 
-            panel_fil.appendChild(this.filtertext_l)
-            panel_fil.appendChild(this.filtertext)
+                panel_fil.appendChild(this.filtertext_l)
+                panel_fil.appendChild(this.filtertext)
 
-            panel_count.appendChild(this.how_many_l)
-            panel_count.appendChild(this.how_many)
-            panel_count.appendChild(this.how_many_c)
+                panel_count.appendChild(this.how_many_l)
+                panel_count.appendChild(this.how_many)
+                panel_count.appendChild(this.how_many_c)
 
-            panel_buttons.appendChild(this.cls_button)
-            panel_buttons.appendChild(this.view_button)
+                panel_buttons.appendChild(this.cls_button)
+                panel_buttons.appendChild(this.view_button)
 
-            panel_cls.appendChild(panel_fil)
-            panel_cls.appendChild(panel_count)
-            panel_cls.appendChild(panel_buttons)
+                panel_cls.appendChild(panel_fil)
+                panel_cls.appendChild(panel_count)
+                panel_cls.appendChild(panel_buttons)
 
-            pop_list_history_actions.appendChild(this.pop_list_history_del)
+                pop_list_history_actions.appendChild(this.pop_list_history_del)
 
-            this.pop_list_history.appendChild(this.pop_list_history_close)
-            this.pop_list_history.appendChild(this.pop_list_history_body)
-            this.pop_list_history.appendChild(pop_list_history_actions)
+                this.pop_list_history.appendChild(this.pop_list_history_close)
+                this.pop_list_history.appendChild(this.pop_list_history_body)
+                this.pop_list_history.appendChild(pop_list_history_actions)
 
-            const secondpanel = document.querySelector('#secondary #contents').parentElement
+                const secondpanel = document.querySelector('#secondary #contents').parentElement
 
-            secondpanel.appendChild(panel_cls)
-            secondpanel.appendChild(this.pop_list_history)
+                secondpanel.appendChild(panel_cls)
+                secondpanel.appendChild(this.pop_list_history)
 
-            // Events
-            this.how_many.addEventListener('input', ()=> {
-                this.cls_button.textContent = `Очистить историю [${this.how_many.value}]`
-            })
+                // Events
+                this.how_many.addEventListener('input', ()=> {
+                    this.cls_button.textContent = `Очистить историю [${this.how_many.value}]`
+                })
 
-            this.how_many_c.addEventListener('change', ()=> {
-                this.how_many.disabled = !this.how_many_c.checked
-            })
+                this.how_many_c.addEventListener('change', ()=> {
+                    this.how_many.disabled = !this.how_many_c.checked
+                })
 
-            this.cls_button.addEventListener('click', this.clear.bind(this, null))
-            this.pop_list_history_del.addEventListener('click', this.clear_viewlist.bind(this))
+                this.cls_button.addEventListener('click', this.clear.bind(this, null))
+                this.pop_list_history_del.addEventListener('click', this.clear_viewlist.bind(this))
 
-            this.view_button.addEventListener('click', this.list_view.bind(this))
-            this.pop_list_history_close.addEventListener('click', this.showhide.bind(this, this.pop_list_history))
+                this.view_button.addEventListener('click', this.list_view.bind(this))
+                this.pop_list_history_close.addEventListener('click', this.showhide.bind(this, this.pop_list_history))
+            }
         }
 
         showhide(element){
@@ -202,21 +213,25 @@ text-align: center;
             this.func_getlist = this.getlist()
 
             this.pop_list_history_body.innerHTML = ''
-            this.showhide(this.pop_list_history)
 
             if(this.how_many_c.checked) this.func_getlist = this.func_getlist.splice(0, +this.how_many.value)
 
-            const box_item = mE({tag:'ul', attr:{id:'ul_list_view'}})
-            for(let item of this.func_getlist){
-                const li = mE({tag:'li', attr:{class:'li_history_tag'}}),
-                      title = mE({tag:'span', text: item.text, attr:{}}),
-                      checked = mE({tag:'input', attr:{type:'checkbox', checked:true}})
+            if(this.func_getlist.length){
+                const box_item = mE({tag:'ul', attr:{id:'ul_list_view'}})
+                for(let item of this.func_getlist){
+                    const li = mE({tag:'li', attr:{class:'li_history_tag'}}),
+                          title = mE({tag:'span', text: item.text, attr:{}}),
+                          checked = mE({tag:'input', attr:{type:'checkbox', checked:true}})
 
-                li.appendChild(title)
-                li.appendChild(checked)
+                    li.appendChild(title)
+                    li.appendChild(checked)
 
-                box_item.appendChild(li)
-                this.pop_list_history_body.appendChild(box_item)
+                    box_item.appendChild(li)
+                    this.pop_list_history_body.appendChild(box_item)
+                }
+                this.showhide(this.pop_list_history)
+            } else {
+                alert("Нечего не найдено, список пуст!")
             }
         }
 
@@ -224,7 +239,7 @@ text-align: center;
             let result = [],
                 collections = [],
                 text = this.filtertext.value,
-                title_wrapper = document.querySelectorAll('ytd-two-column-browse-results-renderer.style-scope.ytd-browse.grid.grid-6-columns #contents #contents > ytd-video-renderer:not([is-dismissed]) #title-wrapper')
+                title_wrapper = document.querySelectorAll(buttonsNotDismiss)
 
             title_wrapper.forEach((t)=>{
                 let vid_text = t.children[0].innerText,
@@ -258,28 +273,63 @@ text-align: center;
 
             if(!list && this.how_many_c.checked) func_getlist = func_getlist.splice(0, +this.how_many.value)
             console.log(func_getlist)
-            if(confirm(`Вы дейстивтельно хотите удалить из истории ${func_getlist.length}?
-${func_getlist.map((x)=>`● ${x.text}`).slice(0,35).join('\n')}'\n...`)){
+            if(confirm(`Вы дейстивтельно хотите удалить из истории ${func_getlist.length}?${func_getlist.map((x)=>`● ${x.text}`).slice(0,35).join('\n')}'\n...`)){
                 for(let butdel of func_getlist){
                     await butdel.but_del.click()
+                }
+                this.showhide(this.pop_list_history)
+
+            }
+        }
+    }
+
+    function funcWaitElement(welem, func=()=>{console.log(arguments)}, many=false, time=500){
+        setTimeout(()=>{
+            const list = many ? document.querySelectorAll(welem) : document.querySelector(welem)
+            if(list){
+                log(`%cЭлемент ${welem} загрузился...`, "color: limegreen;font-weight: bold;")
+                func.call('', list)
+                return
+            } else {
+                log(`%cЭлемент ${welem} еще не загрузился, иду на повтор...`, "color: blue;font-weight: bold;")
+                funcWaitElement(welem, func, many, time)
+            }
+        }, time)
+    }
+
+    function callbackOBS(mutations, observe){
+        for(let m of mutations) {
+            if(m.type === 'attributes' && m.attributeName ==='hidden'){
+                log('Аттрибут ' + m.attributeName + ' был изменен.');
+                if(m.target.hasAttribute('hidden')){
+                    funcWaitElement(buttonsDeletes, (element)=>{
+                        new HisoryClear().makepanel()
+                    }, true)
+                    break
                 }
             }
         }
     }
 
     function start(){
-        setTimeout(()=>{
-            const list = document.querySelectorAll('ytd-two-column-browse-results-renderer.style-scope.ytd-browse.grid.grid-6-columns #contents #contents #menu ytd-menu-renderer.style-scope #top-level-buttons-computed button')
-            if(list.length){
-                console.log('%cИстория загрузилась...', "color: limegreen;font-weight: bold;")
-                let hc = new HisoryClear()
-                hc.makepanel()
-                return
-            } else {
-                console.log('%cИстория еще не загрузилась, иду на повтор...', "color: blue;font-weight: bold;")
-                start()
-            }
-        }, 500)
+        const funcWaitHist = elemnt =>{
+            const mObs = new MutationObserver(callbackOBS)
+            mObs.observe(elemnt, {
+                attributes: true,
+                childList: false,
+                subtree: false
+            })
+        }
+        funcWaitElement('ytd-browse', funcWaitHist)
+
+        if(location.href.includes('feed/history')){
+            funcWaitElement(buttonsDeletes, (element)=>{
+                new HisoryClear().makepanel()
+            },true)
+        }
     }
-    start();
+
+
+    start()
+
 })();
