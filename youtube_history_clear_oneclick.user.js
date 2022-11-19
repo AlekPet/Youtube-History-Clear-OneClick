@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Youtube History Clear OneClick
 // @namespace    https://github.com/AlekPet/Youtube-History-Clear-OneClick
-// @version      2022-10-19
+// @version      2022-11-19
 // @description  Clear history on Youtube
 // @author       AlekPet
 // @match        https://www.youtube.com/feed/history
@@ -269,7 +269,7 @@ ${func_getlist.map((x)=>`● ${x.text}`).slice(0,35).join('\n')}'\n...`)){
 
     function start(){
         setTimeout(()=>{
-            const list = document.querySelectorAll('ytd-two-column-browse-results-renderer.style-scope.ytd-browse.grid.grid-6-columns #contents #contents #menu ytd-menu-renderer.style-scope #top-level-buttons-computed button#button')
+            const list = document.querySelectorAll('ytd-two-column-browse-results-renderer.style-scope.ytd-browse.grid.grid-6-columns #contents #contents #menu ytd-menu-renderer.style-scope #top-level-buttons-computed button')
             if(list.length){
                 console.log('%cИстория загрузилась...', "color: limegreen;font-weight: bold;")
                 let hc = new HisoryClear()
