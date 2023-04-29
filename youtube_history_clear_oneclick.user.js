@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Youtube History Clear OneClick
 // @namespace    https://github.com/AlekPet/Youtube-History-Clear-OneClick
-// @version      2023-04-28
+// @version      2023-04-29
 // @description  Clear history on Youtube
 // @author       AlekPet
 // @match        https://www.youtube.com/*
@@ -274,11 +274,15 @@ background: linear-gradient(45deg, #11ab05, #07efa4);
     class HisoryClear {
         constructor(){
             this.func_getlist = []
-            // Styles
-            const sty = mE({tag:'style', text:globalStylesHistory})
-            document.body.appendChild(sty)
 
-            if(!document.querySelector('.panel_cls')){
+
+            this.panel_cls = document.querySelector('.panel_cls')
+            if(!this.panel_cls){
+
+                // Styles
+                const sty = mE({tag:'style', text:globalStylesHistory})
+                document.body.appendChild(sty)
+
                 // Create elements
                 this.makepanel()
 
@@ -289,6 +293,8 @@ background: linear-gradient(45deg, #11ab05, #07efa4);
                 this.channelAddToFilter()
             }
         }
+
+
 
         returnActiveFilter(arrayObj, attr, value){
             return arrayObj.filter((item)=> item[attr] == value)
@@ -367,13 +373,13 @@ background: linear-gradient(45deg, #11ab05, #07efa4);
         }
 
         makepanel(){
-            let panel_cls = mE({tag:'div', attr:{class:'panel_cls'}}),
-                panel_fil = mE({tag:'div', attr:{class:'panels_histories'}}),
+            let panel_fil = mE({tag:'div', attr:{class:'panels_histories'}}),
                 panel_count = mE({tag:'div', attr:{class:'panels_histories'}}),
                 panel_buttons = mE({tag:'div', attr:{class:'panels_histories'}}),
                 panel_selectItem = mE({tag:'div', attr:{class:'panels_histories'}}),
                 pop_list_history_actions = mE({tag:'div', attr:{id:'pop_list_history_actions'}})
 
+            this.panel_cls = mE({tag:'div', attr:{class:'panel_cls'}})
             this.selectItemLabel = mE({tag:'span', text: langs_select.template, attr:{id:'pop_select_item', style:''}})
             this.selectItem = mE({tag:'select', attr:{id:'pop_select_item', style:'width: 60%;'}})
             this.selectItemAdd = mE({tag:'button', text: "+", attr:{id: 'pop_selectItemAdd', title:langs_select.add_pattern}})
@@ -435,11 +441,11 @@ background: linear-gradient(45deg, #11ab05, #07efa4);
 
             this.updateSelectItem()
 
-            panel_cls.appendChild(panel_fil)
-            panel_cls.appendChild(panel_selectItem)
-            panel_cls.appendChild(panel_count)
-            panel_cls.appendChild(panel_buttons)
-            panel_cls.appendChild(this.selectItemBox)
+            this.panel_cls.appendChild(panel_fil)
+            this.panel_cls.appendChild(panel_selectItem)
+            this.panel_cls.appendChild(panel_count)
+            this.panel_cls.appendChild(panel_buttons)
+            this.panel_cls.appendChild(this.selectItemBox)
 
             pop_list_history_actions.appendChild(this.pop_list_history_del)
 
@@ -449,7 +455,7 @@ background: linear-gradient(45deg, #11ab05, #07efa4);
 
             const secondpanel = document.querySelector('#secondary #contents').parentElement
 
-            secondpanel.appendChild(panel_cls)
+            secondpanel.appendChild(this.panel_cls)
             secondpanel.appendChild(this.pop_list_history)
         }
 
@@ -727,7 +733,7 @@ background: linear-gradient(45deg, #11ab05, #07efa4);
                 log('Аттрибут ' + m.attributeName + ' был изменен.');
                 if(m.target.hasAttribute('hidden')){
                     funcWaitElement(buttonsDeletes, (element)=>{
-                        new HisoryClear().makepanel()
+                        new HisoryClear()
                     }, true)
                     break
                 }
