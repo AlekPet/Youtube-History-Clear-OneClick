@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Youtube History Clear OneClick
 // @namespace    https://github.com/AlekPet/Youtube-History-Clear-OneClick
-// @version      2023-04-29
+// @version      2023-05-01
 // @description  Clear history on Youtube
 // @author       AlekPet
 // @match        https://www.youtube.com/*
@@ -37,6 +37,7 @@
                 not_include_words_title: 'Не включеные слова: ',
                 //
                 add_pattern: 'Добавить фильтр',
+                add_channel_filter: 'Добавить канал в фильтр',
                 edit_pattern: 'Изменить',
                 del_pattern: 'Удалить',
                 save_pattern: 'Сохранить',
@@ -74,6 +75,7 @@
                 not_include_words_title: 'Not included words: ',
                 //
                 add_pattern: 'Add filter',
+                add_channel_filter: 'Add channel to filter',
                 edit_pattern: 'Edit',
                 del_pattern: 'Delete',
                 save_pattern: 'Save',
@@ -271,7 +273,11 @@ background: linear-gradient(45deg, #11ab05, #07efa4);
         return element
     }
 
-    class HisoryClear {
+    Element.prototype.appendChilds = function(args){
+        args.forEach((elem)=> this.appendChild(elem))
+    }
+
+    class HistoryClear {
         constructor(){
             this.func_getlist = []
 
@@ -316,7 +322,7 @@ background: linear-gradient(45deg, #11ab05, #07efa4);
             const wrapper = document.querySelectorAll(buttonsNotDismiss+' #meta #metadata')
             wrapper.forEach((w)=>{
                 if(!w.querySelector('.channel_container_data')){
-                    let channel_container_data = mE({tag:'div', attr:{title:'Add',id:'byline-container', class:'channel_container_data style-scope ytd-video-meta-block'}}),
+                    let channel_container_data = mE({tag:'div', attr:{title:'Add channel to filter',id:'byline-container', class:'channel_container_data style-scope ytd-video-meta-block'}}),
                         add_channel_btn = mE({tag:'div', text: '+', attr:{class:'add_channel_btn'}}),
                         sep = mE({tag:'div', text: '•', attr:{id:'separator', class:"style-scope ytd-video-meta-block"}})
 
@@ -377,7 +383,8 @@ background: linear-gradient(45deg, #11ab05, #07efa4);
                 panel_count = mE({tag:'div', attr:{class:'panels_histories'}}),
                 panel_buttons = mE({tag:'div', attr:{class:'panels_histories'}}),
                 panel_selectItem = mE({tag:'div', attr:{class:'panels_histories'}}),
-                pop_list_history_actions = mE({tag:'div', attr:{id:'pop_list_history_actions'}})
+                pop_list_history_actions = mE({tag:'div', attr:{id:'pop_list_history_actions'}}),
+                secondpanel = document.querySelector('#secondary #contents').parentElement
 
             this.panel_cls = mE({tag:'div', attr:{class:'panel_cls'}})
             this.selectItemLabel = mE({tag:'span', text: langs_select.template, attr:{id:'pop_select_item', style:''}})
@@ -396,15 +403,8 @@ background: linear-gradient(45deg, #11ab05, #07efa4);
             this.itIsChannels = mE({tag:'input', attr:{type:'checkbox', id:'it_is_channels', title:"Channels List"}})
             this.itIsChannels_label = mE({tag:'label', text:"Channels List", attr:{style:'margin-right: 10%;',class:'pop_selectItemBox_body', for:'it_is_channels'}})
 
-            this.selectItemBox_body.appendChild(this.itIsChannels)
-            this.selectItemBox_body.appendChild(this.itIsChannels_label)
-            this.selectItemBox_body.appendChild(this.selectItemSave)
-
-            this.selectItemBox.appendChild(this.selectItemTextArea)
-            this.selectItemBox.appendChild(this.selectItemBox_body)
-
-            this.selectItemBox.appendChild(this.selectItemBoxClose)
-            this.selectItemBox.appendChild(this.selectItemInfo)
+            this.selectItemBox_body.appendChilds([this.itIsChannels, this.itIsChannels_label, this.selectItemSave])
+            this.selectItemBox.appendChilds([this.selectItemTextArea, this.selectItemBox_body, this.selectItemBoxClose, this.selectItemInfo])
 
             this.pop_list_history = mE({tag:'div', attr:{id:'pop_list_history', style:'display:none;'}})
 
@@ -423,40 +423,17 @@ background: linear-gradient(45deg, #11ab05, #07efa4);
 
             this.pop_list_history_close = mE({tag:'div', text: "X", attr:{title:langs_select.close,class:'pop_list_history_close'}})
 
-            panel_fil.appendChild(this.filtertext_l)
-            panel_fil.appendChild(this.filtertext)
+            panel_fil.appendChilds([this.filtertext_l, this.filtertext])
+            panel_count.appendChilds([this.how_many_l, this.how_many, this.how_many_c])
+            panel_buttons.appendChilds([this.cls_button, this.view_button])
+            panel_selectItem.appendChilds([this.selectItemLabel, this.selectItem, this.selectItemAdd, this.selectItemEdit, this.selectItemRem])
 
-            panel_count.appendChild(this.how_many_l)
-            panel_count.appendChild(this.how_many)
-            panel_count.appendChild(this.how_many_c)
-
-            panel_buttons.appendChild(this.cls_button)
-            panel_buttons.appendChild(this.view_button)
-
-            panel_selectItem.appendChild(this.selectItemLabel)
-            panel_selectItem.appendChild(this.selectItem)
-            panel_selectItem.appendChild(this.selectItemAdd)
-            panel_selectItem.appendChild(this.selectItemEdit)
-            panel_selectItem.appendChild(this.selectItemRem)
-
-            this.updateSelectItem()
-
-            this.panel_cls.appendChild(panel_fil)
-            this.panel_cls.appendChild(panel_selectItem)
-            this.panel_cls.appendChild(panel_count)
-            this.panel_cls.appendChild(panel_buttons)
-            this.panel_cls.appendChild(this.selectItemBox)
-
+            this.panel_cls.appendChilds([panel_fil, panel_selectItem, panel_count, panel_buttons, this.selectItemBox])
             pop_list_history_actions.appendChild(this.pop_list_history_del)
+            this.pop_list_history.appendChilds([this.pop_list_history_close, this.pop_list_history_body, pop_list_history_actions])
 
-            this.pop_list_history.appendChild(this.pop_list_history_close)
-            this.pop_list_history.appendChild(this.pop_list_history_body)
-            this.pop_list_history.appendChild(pop_list_history_actions)
-
-            const secondpanel = document.querySelector('#secondary #contents').parentElement
-
-            secondpanel.appendChild(this.panel_cls)
-            secondpanel.appendChild(this.pop_list_history)
+            secondpanel.appendChilds([this.panel_cls,this.pop_list_history])
+            this.updateSelectItem()
         }
 
         setEvents(){
@@ -733,7 +710,7 @@ background: linear-gradient(45deg, #11ab05, #07efa4);
                 log('Аттрибут ' + m.attributeName + ' был изменен.');
                 if(m.target.hasAttribute('hidden')){
                     funcWaitElement(buttonsDeletes, (element)=>{
-                        new HisoryClear()
+                        new HistoryClear()
                     }, true)
                     break
                 }
@@ -752,11 +729,11 @@ background: linear-gradient(45deg, #11ab05, #07efa4);
                 subtree: false
             })
         }
-        funcWaitElement('ytd-browse', funcWaitHist)
+        funcWaitElement(ytd_browse, funcWaitHist)
 
         if(location.href.includes('feed/history')){
             funcWaitElement(buttonsDeletes, (element)=>{
-                new HisoryClear()
+                new HistoryClear()
             },true)
         }
     }
